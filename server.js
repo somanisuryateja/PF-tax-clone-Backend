@@ -335,6 +335,10 @@ const parseReturnFile = (buffer) => {
 
 const buildStatementSummary = (returnFileDoc) => {
   const { totals } = returnFileDoc;
+  const employer = ANNEXURE_EMPLOYERS.find(
+    (item) => item.establishmentId === returnFileDoc.employerId
+  );
+
   const aggregation = totals ?? {
     contributions: {
       employeePf: 0,
@@ -347,6 +351,7 @@ const buildStatementSummary = (returnFileDoc) => {
     establishmentName: returnFileDoc.establishmentName,
     establishmentId: returnFileDoc.employerId,
     lin: returnFileDoc.lin ?? '1234567890',
+    uin: employer?.username ?? '',
     contributionRate: returnFileDoc.contributionRate,
     returnFileId: returnFileDoc.trrn,
     uploadedAt: returnFileDoc.uploadedAt,
@@ -837,7 +842,7 @@ app.post('/challans/validate-bank', authenticateRequest, async (req, res) => {
       },
     });
   } else {
-    res.status(401).json({
+    res.status(400).json({
       valid: false,
       message: 'Invalid banking credentials. Please check your username and password.',
     });
