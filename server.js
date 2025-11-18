@@ -463,19 +463,27 @@ app.post('/auth/login', async (req, res) => {
     return res.status(400).json({ message: 'Username and password are required' });
   }
 
-  const employer = ANNEXURE_EMPLOYERS.find(
-    (item) => item.username === username && item.password === password
+  // First check if username exists
+  const employerByUsername = ANNEXURE_EMPLOYERS.find(
+    (item) => item.username === username
   );
 
-  if (!employer) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+  // If username doesn't exist
+  if (!employerByUsername) {
+    return res.status(401).json({ message: 'PAN does not exist please register this PAN or try with some other PAN.' });
   }
 
+  // If username exists but password is wrong
+  if (employerByUsername.password !== password) {
+    return res.status(401).json({ message: 'Invalid Password. Please retry.' });
+  }
+
+  // Both username and password are correct
   const token = jwt.sign(
     {
-      sub: employer.username,
-      employerId: employer.establishmentId,
-      establishmentName: employer.establishmentName,
+      sub: employerByUsername.username,
+      employerId: employerByUsername.establishmentId,
+      establishmentName: employerByUsername.establishmentName,
     },
     JWT_SECRET,
     { expiresIn: '8h' }
@@ -484,9 +492,9 @@ app.post('/auth/login', async (req, res) => {
   res.json({
     token,
     employer: {
-      username: employer.username,
-      establishmentId: employer.establishmentId,
-      establishmentName: employer.establishmentName,
+      username: employerByUsername.username,
+      establishmentId: employerByUsername.establishmentId,
+      establishmentName: employerByUsername.establishmentName,
     },
   });
 });
